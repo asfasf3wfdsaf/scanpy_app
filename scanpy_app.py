@@ -43,6 +43,14 @@ PLOTLY_CONFIG_ZOOM = {
 }
 
 
+def safe_write_h5ad(adata, path):
+    """保存时移除 raw 避免 anndata 版本兼容问题"""
+    if adata.raw is not None:
+        adata = adata.copy()
+        adata.raw = None
+    adata.write_h5ad(path)
+
+
 def make_umap_fig(adata, color_col, title, height):
     df = pd.DataFrame({
         "UMAP1": adata.obsm["X_umap"][:, 0],
@@ -212,7 +220,7 @@ if st.session_state.tab_idx == 0:
                 st.session_state.adata = sc.datasets.pbmc68k_reduced()
                 st.session_state.workflow_done = False
                 st.session_state.rank_genes_done = False
-                st.session_state.adata.write_h5ad(TEMP_PATH)
+                safe_write_h5ad(st.session_state.adata, TEMP_PATH)
                 st.success(f"✅ 加载完成！{st.session_state.adata.n_obs} 细胞 × {st.session_state.adata.n_vars} 基因")
         else:
             h5ad_path = st.text_input("输入 .h5ad 文件路径", placeholder="如 E:/cell/my_data.h5ad")
@@ -226,7 +234,7 @@ if st.session_state.tab_idx == 0:
                         st.session_state.adata = adata
                         st.session_state.workflow_done = False
                         st.session_state.rank_genes_done = False
-                        adata.write_h5ad(TEMP_PATH)
+                        safe_write_h5ad(adata, TEMP_PATH)
                         st.success(f"✅ 加载完成！{adata.n_obs} 细胞 × {adata.n_vars} 基因")
                     except FileNotFoundError:
                         st.error("文件不存在，请检查路径是否正确")
@@ -278,7 +286,7 @@ elif st.session_state.tab_idx == 1:
             st.session_state.adata = adata
             st.session_state.workflow_done = True
             st.session_state.rank_genes_done = False
-            adata.write_h5ad(TEMP_PATH)
+            safe_write_h5ad(adata, TEMP_PATH)
             st.success("✅ 完成！切换到「可视化」查看结果")
         if st.session_state.workflow_done:
             st.markdown("---")
@@ -414,7 +422,7 @@ elif st.session_state.tab_idx == 2:
                 with st.spinner("t-test 计算中（请稍候）..."):
                     sc.tl.rank_genes_groups(adata, groupby="leiden", method="t-test")
                     st.session_state.rank_genes_done = True
-                    adata.write_h5ad(TEMP_PATH)
+                    safe_write_h5ad(adata, TEMP_PATH)
                 st.success("✅ 计算完成！")
 
             if st.session_state.rank_genes_done:
@@ -459,5 +467,5 @@ elif st.session_state.tab_idx == 2:
             clicked = st.button("💾 保存", help="保存当前分析结果")
         if clicked:
             adata.write_h5ad(save_path)
-            adata.write_h5ad(TEMP_PATH)
+            safe_write_h5ad(adata, TEMP_PATH)
             st.success(f"✅ 已保存到 {save_path}")
