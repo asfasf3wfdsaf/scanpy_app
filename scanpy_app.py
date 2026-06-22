@@ -454,25 +454,15 @@ elif st.session_state.tab_idx == 2:
 
         st.divider()
         st.markdown("### 💾 保存结果")
-        st.caption("点击下载将分析结果保存为 .h5ad 文件")
-        tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
-        adata_copy = adata.copy()
-        if adata_copy.raw is not None:
-            adata_copy.raw = None
-        for col in adata_copy.obs.columns:
-            adata_copy.obs[col] = adata_copy.obs[col].astype(object)
-        adata_copy.obs.reset_index(drop=True, inplace=True)
-        for col in adata_copy.var.columns:
-            adata_copy.var[col] = adata_copy.var[col].astype(object)
-        adata_copy.var.reset_index(drop=True, inplace=True)
-        adata_copy.write_h5ad(tmp_path)
-        with open(tmp_path, "rb") as f:
-            data = f.read()
-        os.remove(tmp_path)
+        st.caption("点击下载分析结果（CSV 格式，可用 Excel 打开）")
+        result_df = adata.obs[["leiden"]].copy()
+        result_df["UMAP1"] = adata.obsm["X_umap"][:, 0]
+        result_df["UMAP2"] = adata.obsm["X_umap"][:, 1]
+        csv_data = result_df.to_csv().encode("utf-8-sig")
         st.download_button(
-            "📥 下载 .h5ad 结果文件",
-            data=data,
-            file_name="scanpy_result.h5ad",
-            mime="application/x-h5ad",
-            help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
+            "📥 下载分析结果（CSV）",
+            data=csv_data,
+            file_name="scanpy_result.csv",
+            mime="text/csv",
+            help="包含每个细胞的 Cluster 归属和 UMAP 坐标",
         )
