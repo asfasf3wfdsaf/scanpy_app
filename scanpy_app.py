@@ -211,23 +211,15 @@ if st.session_state.tab_idx == 0:
                 safe_write_h5ad(st.session_state.adata, TEMP_PATH)
                 st.success(f"✅ 加载完成！{st.session_state.adata.n_obs} 细胞 × {st.session_state.adata.n_vars} 基因")
         else:
-            h5ad_path = st.text_input("输入 .h5ad 文件路径", placeholder="如 E:/cell/my_data.h5ad")
-            if st.button("加载文件", type="primary"):
-                if not h5ad_path:
-                    st.warning("请输入文件路径")
-                else:
-                    try:
-                        with st.spinner("加载中..."):
-                            adata = sc.read_h5ad(h5ad_path)
-                        st.session_state.adata = adata
-                        st.session_state.workflow_done = False
-                        st.session_state.rank_genes_done = False
-                        safe_write_h5ad(adata, TEMP_PATH)
-                        st.success(f"✅ 加载完成！{adata.n_obs} 细胞 × {adata.n_vars} 基因")
-                    except FileNotFoundError:
-                        st.error("文件不存在，请检查路径是否正确")
-                    except Exception as e:
-                        st.error(f"加载失败：{e}")
+            uploaded = st.file_uploader("上传 .h5ad 文件", type=["h5ad"])
+            if uploaded is not None:
+                with st.spinner("加载中..."):
+                    import io
+                    adata = sc.read_h5ad(io.BytesIO(uploaded.getvalue()))
+                st.session_state.adata = adata
+                st.session_state.workflow_done = False
+                st.session_state.rank_genes_done = False
+                st.success(f"✅ 加载完成！{adata.n_obs} 细胞 × {adata.n_vars} 基因")
     if st.session_state.adata is not None:
         adata = st.session_state.adata
         m1, m2, m3, m4 = st.columns(4)
@@ -447,13 +439,15 @@ elif st.session_state.tab_idx == 2:
 
         st.divider()
         st.markdown("### 💾 保存结果")
-        st.caption(".h5ad 是 Scanpy 标准格式，包含完整分析结果（数据、坐标、聚类、差异基因等），可随时加载继续分析")
-        col_ip, col_btn = st.columns([4, 1])
-        with col_ip:
-            save_path = st.text_input("保存路径", value=SAVE_PATH, label_visibility="collapsed")
-        with col_btn:
-            clicked = st.button("💾 保存", help="保存当前分析结果")
-        if clicked:
-            adata.write_h5ad(save_path)
-            safe_write_h5ad(adata, TEMP_PATH)
-            st.success(f"✅ 已保存到 {save_path}")
+        st.caption("点击下载将分析结果保存为 .h5ad 文件")
+        import io
+        buf = io.BytesIO()
+        adata.write_h5ad(buf)
+        buf.seek(0)
+        st.download_button(
+            "📥 下载 .h5ad 结果文件",
+            data=buf.getvalue(),
+            file_name="scanpy_result.h5ad",
+            mime="application/x-h5ad",
+            help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
+        )
