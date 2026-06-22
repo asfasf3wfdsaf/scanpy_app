@@ -14,8 +14,11 @@ warnings.filterwarnings('ignore')
 st.set_page_config(page_title="单细胞分析工具", layout="wide")
 st.title("🧬 单细胞分析 - Scanpy 练手工具")
 
-SAVE_PATH = "E:/cell/pbmc68k_result.h5ad"
-TEMP_PATH = "E:/cell/pbmc68k_workflow.h5ad"
+import tempfile
+import os
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+SAVE_PATH = os.path.join(APP_DIR, "pbmc68k_result.h5ad")
+TEMP_PATH = os.path.join(tempfile.gettempdir(), "pbmc68k_workflow.h5ad")
 
 st.markdown("""
 <style>
