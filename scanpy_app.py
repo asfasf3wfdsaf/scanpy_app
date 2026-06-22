@@ -12,7 +12,7 @@ import os
 warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="单细胞分析工具", layout="wide")
-st.title("🧬 单细胞分析 - Scanpy 练手工具")
+st.title("🧬 单细胞分析工具")
 
 import tempfile
 import os
