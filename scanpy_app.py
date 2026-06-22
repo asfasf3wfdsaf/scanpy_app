@@ -44,10 +44,13 @@ PLOTLY_CONFIG_ZOOM = {
 
 
 def safe_write_h5ad(adata, path):
-    """保存时移除 raw 避免 anndata 版本兼容问题"""
+    """保存时处理 anndata 版本兼容问题"""
+    adata = adata.copy()
     if adata.raw is not None:
-        adata = adata.copy()
         adata.raw = None
+    for col in adata.obs.columns:
+        if adata.obs[col].dtype.name == 'category':
+            adata.obs[col] = adata.obs[col].astype(str)
     adata.write_h5ad(path)
 
 
