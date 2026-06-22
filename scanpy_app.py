@@ -456,16 +456,19 @@ elif st.session_state.tab_idx == 2:
                 """)
 
         st.divider()
-        st.markdown("### 💾 保存结果")
-        st.caption("点击下载将分析结果保存为 .h5ad 文件")
-        import io
-        buf = io.BytesIO()
-        adata.write_h5ad(buf)
-        buf.seek(0)
-        st.download_button(
-            "📥 下载 .h5ad 结果文件",
-            data=buf.getvalue(),
-            file_name="scanpy_result.h5ad",
-            mime="application/x-h5ad",
-            help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
-        )
+          st.markdown("### 💾 保存结果")
+          st.caption("点击下载将分析结果保存为 .h5ad 文件")
+          import tempfile
+          import io
+          tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
+          adata.write_h5ad(tmp_path)
+          with open(tmp_path, "rb") as f:
+              data = f.read()
+          os.remove(tmp_path)
+          st.download_button(
+              "📥 下载 .h5ad 结果文件",
+              data=data,
+              file_name="scanpy_result.h5ad",
+              mime="application/x-h5ad",
+              help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
+          )
