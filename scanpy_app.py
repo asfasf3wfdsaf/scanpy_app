@@ -48,11 +48,28 @@ def safe_write_h5ad(adata, path):
     adata = adata.copy()
     if adata.raw is not None:
         adata.raw = None
+    # 处理 obs 所有列
     for col in adata.obs.columns:
         if adata.obs[col].dtype.name == 'category':
             adata.obs[col] = adata.obs[col].astype(str)
         elif 'ArrowString' in str(adata.obs[col].dtype):
             adata.obs[col] = adata.obs[col].astype(str)
+    # 处理 obs index
+    if adata.obs.index.dtype.name == 'category':
+        adata.obs.index = adata.obs.index.astype(str)
+    elif 'ArrowString' in str(adata.obs.index.dtype):
+        adata.obs.index = adata.obs.index.astype(str)
+    # 处理 var 所有列
+    for col in adata.var.columns:
+        if adata.var[col].dtype.name == 'category':
+            adata.var[col] = adata.var[col].astype(str)
+        elif 'ArrowString' in str(adata.var[col].dtype):
+            adata.var[col] = adata.var[col].astype(str)
+    # 处理 var index
+    if adata.var.index.dtype.name == 'category':
+        adata.var.index = adata.var.index.astype(str)
+    elif 'ArrowString' in str(adata.var.index.dtype):
+        adata.var.index = adata.var.index.astype(str)
     adata.write_h5ad(path)
 
 
