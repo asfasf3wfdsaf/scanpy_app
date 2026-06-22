@@ -460,17 +460,11 @@ elif st.session_state.tab_idx == 2:
         if adata_copy.raw is not None:
             adata_copy.raw = None
         for col in adata_copy.obs.columns:
-            if adata_copy.obs[col].dtype.name == 'category':
-                adata_copy.obs[col] = adata_copy.obs[col].astype(str)
-            elif 'ArrowString' in str(adata_copy.obs[col].dtype):
-                adata_copy.obs[col] = adata_copy.obs[col].astype(str)
-        adata_copy.obs = adata_copy.obs.reset_index(drop=True)
+            adata_copy.obs[col] = adata_copy.obs[col].astype(object)
+        adata_copy.obs.reset_index(drop=True, inplace=True)
         for col in adata_copy.var.columns:
-            if adata_copy.var[col].dtype.name == 'category':
-                adata_copy.var[col] = adata_copy.var[col].astype(str)
-            elif 'ArrowString' in str(adata_copy.var[col].dtype):
-                adata_copy.var[col] = adata_copy.var[col].astype(str)
-        adata_copy.var = adata_copy.var.reset_index(drop=True)
+            adata_copy.var[col] = adata_copy.var[col].astype(object)
+        adata_copy.var.reset_index(drop=True, inplace=True)
         adata_copy.write_h5ad(tmp_path)
         with open(tmp_path, "rb") as f:
             data = f.read()
