@@ -44,33 +44,8 @@ PLOTLY_CONFIG_ZOOM = {
 
 
 def safe_write_h5ad(adata, path):
-    """保存时处理 anndata 版本兼容问题"""
-    adata = adata.copy()
-    if adata.raw is not None:
-        adata.raw = None
-    # 处理 obs 所有列
-    for col in adata.obs.columns:
-        if adata.obs[col].dtype.name == 'category':
-            adata.obs[col] = adata.obs[col].astype(str)
-        elif 'ArrowString' in str(adata.obs[col].dtype):
-            adata.obs[col] = adata.obs[col].astype(str)
-    # 处理 obs index
-    if adata.obs.index.dtype.name == 'category':
-        adata.obs.index = adata.obs.index.astype(str)
-    elif 'ArrowString' in str(adata.obs.index.dtype):
-        adata.obs.index = adata.obs.index.astype(str)
-    # 处理 var 所有列
-    for col in adata.var.columns:
-        if adata.var[col].dtype.name == 'category':
-            adata.var[col] = adata.var[col].astype(str)
-        elif 'ArrowString' in str(adata.var[col].dtype):
-            adata.var[col] = adata.var[col].astype(str)
-    # 处理 var index
-    if adata.var.index.dtype.name == 'category':
-        adata.var.index = adata.var.index.astype(str)
-    elif 'ArrowString' in str(adata.var.index.dtype):
-        adata.var.index = adata.var.index.astype(str)
-    adata.write_h5ad(path)
+    """云端不保存临时文件，直接跳过"""
+    pass
 
 
 def make_umap_fig(adata, color_col, title, height):
@@ -169,16 +144,6 @@ for key in ["adata", "workflow_done", "rank_genes_done", "tab_idx",
         st.session_state[key] = False if key in ("workflow_done", "rank_genes_done", "umap_big", "rg_big") else None
 st.session_state.tab_idx = 0
 
-# 正常启动：尝试从临时文件恢复
-if st.session_state.adata is None and os.path.exists(TEMP_PATH):
-    try:
-        st.session_state.adata = sc.read_h5ad(TEMP_PATH)
-        st.session_state.workflow_done = "leiden" in st.session_state.adata.obs
-        st.session_state.rank_genes_done = "rank_genes_groups" in st.session_state.adata.uns
-        st.info("✅ 已自动恢复上次的分析结果")
-    except Exception:
-        pass
-
 # ============================================================
 # 侧边栏
 # ============================================================
@@ -236,6 +201,7 @@ if st.session_state.tab_idx == 0:
         else:
             st.info("**加载 .h5ad**：把你的数据文件路径填进来。")
     st.divider()
+    st.warning("⚠️ 注意：刷新页面会重置分析进度（数据不会丢，只是需要重新跑分析流程）")
     if st.button("加载数据", type="primary", use_container_width=True):
         if data_source == "PBMC 68K（内置，推荐新手）":
             with st.spinner("加载中..."):
