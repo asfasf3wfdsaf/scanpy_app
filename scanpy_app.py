@@ -455,7 +455,6 @@ elif st.session_state.tab_idx == 2:
         st.divider()
         st.markdown("### 💾 保存结果")
         st.caption("点击下载将分析结果保存为 .h5ad 文件")
-        import io
         tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
         adata_copy = adata.copy()
         if adata_copy.raw is not None:
@@ -465,19 +464,13 @@ elif st.session_state.tab_idx == 2:
                 adata_copy.obs[col] = adata_copy.obs[col].astype(str)
             elif 'ArrowString' in str(adata_copy.obs[col].dtype):
                 adata_copy.obs[col] = adata_copy.obs[col].astype(str)
-        if adata_copy.obs.index.dtype.name == 'category':
-            adata_copy.obs.index = adata_copy.obs.index.astype(str)
-        elif 'ArrowString' in str(adata_copy.obs.index.dtype):
-            adata_copy.obs.index = adata_copy.obs.index.astype(str)
+        adata_copy.obs = adata_copy.obs.reset_index(drop=True)
         for col in adata_copy.var.columns:
             if adata_copy.var[col].dtype.name == 'category':
                 adata_copy.var[col] = adata_copy.var[col].astype(str)
             elif 'ArrowString' in str(adata_copy.var[col].dtype):
                 adata_copy.var[col] = adata_copy.var[col].astype(str)
-        if adata_copy.var.index.dtype.name == 'category':
-            adata_copy.var.index = adata_copy.var.index.astype(str)
-        elif 'ArrowString' in str(adata_copy.var.index.dtype):
-            adata_copy.var.index = adata_copy.var.index.astype(str)
+        adata_copy.var = adata_copy.var.reset_index(drop=True)
         adata_copy.write_h5ad(tmp_path)
         with open(tmp_path, "rb") as f:
             data = f.read()
