@@ -457,7 +457,10 @@ elif st.session_state.tab_idx == 2:
         st.caption("点击下载将分析结果保存为 .h5ad 文件")
         import io
         tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
-        adata.write_h5ad(tmp_path)
+        adata_copy = adata.copy()
+        if adata_copy.raw is not None:
+            adata_copy.raw = None
+        adata_copy.write_h5ad(tmp_path)
         with open(tmp_path, "rb") as f:
             data = f.read()
         os.remove(tmp_path)
