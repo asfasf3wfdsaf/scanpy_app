@@ -211,7 +211,8 @@ if st.session_state.tab_idx == 0:
                 safe_write_h5ad(st.session_state.adata, TEMP_PATH)
                 st.success(f"✅ 加载完成！{st.session_state.adata.n_obs} 细胞 × {st.session_state.adata.n_vars} 基因")
         else:
-            uploaded = st.file_uploader("上传 .h5ad 文件", type=["h5ad"])
+            st.markdown("**方式一：本地文件上传（限 200MB 以内）**")
+            uploaded = st.file_uploader("上传 .h5ad 文件", type=["h5ad"], label_visibility="collapsed")
             if uploaded is not None:
                 with st.spinner("加载中..."):
                     import io
@@ -220,6 +221,23 @@ if st.session_state.tab_idx == 0:
                 st.session_state.workflow_done = False
                 st.session_state.rank_genes_done = False
                 st.success(f"✅ 加载完成！{adata.n_obs} 细胞 × {adata.n_vars} 基因")
+            st.markdown("---")
+            st.markdown("**方式二：网络 URL 下载（适合大文件，几 GB 都可以）**")
+            st.caption("填入 .h5ad 文件的直链地址，支持百度网盘、阿里云、GitHub Release 等直链")
+            url_path = st.text_input("输入文件直链 URL", placeholder="https://example.com/data.h5ad", label_visibility="collapsed")
+            if url_path:
+                if st.button("从 URL 下载", type="primary"):
+                    try:
+                        with st.spinner("下载中（请稍候）..."):
+                            import urllib.request
+                            urllib.request.urlretrieve(url_path, TEMP_PATH)
+                            adata = sc.read_h5ad(TEMP_PATH)
+                        st.session_state.adata = adata
+                        st.session_state.workflow_done = False
+                        st.session_state.rank_genes_done = False
+                        st.success(f"✅ 下载完成！{adata.n_obs} 细胞 × {adata.n_vars} 基因")
+                    except Exception as e:
+                        st.error(f"下载失败：{e}")
     if st.session_state.adata is not None:
         adata = st.session_state.adata
         m1, m2, m3, m4 = st.columns(4)
