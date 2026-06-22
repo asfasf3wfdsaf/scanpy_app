@@ -9,13 +9,12 @@ import matplotlib
 matplotlib.use('Agg')
 import warnings
 import os
+import tempfile
 warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="单细胞分析工具", layout="wide")
 st.title("🧬 单细胞分析工具")
 
-import tempfile
-import os
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_PATH = os.path.join(APP_DIR, "pbmc68k_result.h5ad")
 TEMP_PATH = os.path.join(tempfile.gettempdir(), "pbmc68k_workflow.h5ad")
@@ -344,18 +343,16 @@ elif st.session_state.tab_idx == 2:
             all_genes = sorted(list(adata.var_names))
             defaults = [g for g in ["CD3D", "CD8A", "MS4A1", "GNLY", "NKG7", "FCER1A"] if g in all_genes]
 
-            # 搜索框
             search = st.text_input("🔍 搜索基因名称", placeholder="输入基因名，如 CD3D")
             if search:
                 filtered = [g for g in all_genes if search.lower() in g.lower()]
             else:
                 filtered = all_genes
 
-            # 勾选框选择
             st.caption(f"共 {len(all_genes)} 个基因，已过滤 {len(filtered)} 个")
             selected = []
             cols = st.columns(3)
-            for i, g in enumerate(filtered[:90]):  # 最多显示90个避免太慢
+            for i, g in enumerate(filtered[:90]):
                 with cols[i % 3]:
                     if st.checkbox(g, value=(g in defaults), key=f"gene_{g}"):
                         selected.append(g)
@@ -456,19 +453,18 @@ elif st.session_state.tab_idx == 2:
                 """)
 
         st.divider()
-          st.markdown("### 💾 保存结果")
-          st.caption("点击下载将分析结果保存为 .h5ad 文件")
-          import tempfile
-          import io
-          tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
-          adata.write_h5ad(tmp_path)
-          with open(tmp_path, "rb") as f:
-              data = f.read()
-          os.remove(tmp_path)
-          st.download_button(
-              "📥 下载 .h5ad 结果文件",
-              data=data,
-              file_name="scanpy_result.h5ad",
-              mime="application/x-h5ad",
-              help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
-          )
+        st.markdown("### 💾 保存结果")
+        st.caption("点击下载将分析结果保存为 .h5ad 文件")
+        import io
+        tmp_path = os.path.join(tempfile.gettempdir(), "scanpy_download.h5ad")
+        adata.write_h5ad(tmp_path)
+        with open(tmp_path, "rb") as f:
+            data = f.read()
+        os.remove(tmp_path)
+        st.download_button(
+            "📥 下载 .h5ad 结果文件",
+            data=data,
+            file_name="scanpy_result.h5ad",
+            mime="application/x-h5ad",
+            help="下载当前分析结果，包含数据、聚类、UMAP坐标等",
+        )
