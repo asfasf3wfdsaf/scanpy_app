@@ -51,6 +51,8 @@ def safe_write_h5ad(adata, path):
     for col in adata.obs.columns:
         if adata.obs[col].dtype.name == 'category':
             adata.obs[col] = adata.obs[col].astype(str)
+        elif 'ArrowString' in str(adata.obs[col].dtype):
+            adata.obs[col] = adata.obs[col].astype(str)
     adata.write_h5ad(path)
 
 
